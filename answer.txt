@@ -1,0 +1,10 @@
+[LDAP "test"]
+ServerAddress = 
+BindDN = "cn=admin,dc=ssp-openldap"
+BindPassword = "LDAPpass"
+UserSearchBaseDN = "ou=People,dc=ssp-openldap"
+UsernameAttribute = "uid"
+UserObjectClass = "inetOrgPerson"
+UserEmailAttribute = mail
+UserFirstNameAttribute = givenName 
+UserLastNameAttribute = sn
