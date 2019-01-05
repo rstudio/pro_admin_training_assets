@@ -1,10 +1,8 @@
-# Install pre-reqs
-
 pkgs <- c(
   "tidyverse",
   "babynames",
   "splines",
- 
+  
   "repoman", 
   "shiny",
   "shinydashboard",
@@ -23,6 +21,5 @@ pkgs <- c(
   "plumber"
 )
 
-for (pkg in pkgs) {
-  if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg)
-}
+not_installed <- setdiff(pkgs, as.data.frame(installed.packages())$Package)
+install.packages(not_installed)
