@@ -17,7 +17,7 @@ sudo_provider = ldap
 enumerate = true
 cache_credentials = false
 ldap_schema = rfc2307bis
-ldap_uri = ldap://leader.example.com:389
+ldap_uri = ldap://leader.example.org:389
 ldap_search_base = dc=example,dc=org
 ldap_user_search_base = dc=example,dc=org
 ldap_user_object_class = posixAccount
