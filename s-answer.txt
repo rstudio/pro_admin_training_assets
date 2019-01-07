@@ -26,10 +26,8 @@ ldap_user_name = cn
 ldap_group_search_base = dc=example,dc=org
 ldap_group_object_class = posixGroup
 ldap_group_name = cn
-ldap_id_use_start_tls = false
-ldap_tls_reqcert = never
-ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
 ldap_default_bind_dn = cn=admin,dc=example,dc=org
+# this is the password
 ldap_default_authtok = admin
 access_provider = ldap
 ldap_access_filter = (objectClass=posixAccount)
@@ -47,4 +45,7 @@ ldap_access_order = filter
 
 # just because we are testing
 ldap_auth_disable_tls_never_use_in_production = true
+ldap_id_use_start_tls = false
+ldap_tls_reqcert = never
+ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
 use_fully_qualified_names = false
