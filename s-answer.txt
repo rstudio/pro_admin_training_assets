@@ -1,0 +1,51 @@
+[sssd]
+config_file_version = 2
+services = nss, pam
+domains = LDAP
+
+[nss]
+filter_users = root,named,avahi,haldaemon,dbus,radiusd,news,nscd
+filter_groups =
+
+[pam]
+
+[domain/LDAP]
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+sudo_provider = ldap
+enumerate = true
+cache_credentials = false
+ldap_schema = rfc2307bis
+ldap_uri = ldap://leader.example.org:389
+ldap_search_base = dc=example,dc=org
+ldap_user_search_base = dc=example,dc=org
+ldap_user_object_class = posixAccount
+ldap_user_name = cn
+
+ldap_group_search_base = dc=example,dc=org
+ldap_group_object_class = posixGroup
+ldap_group_name = cn
+ldap_default_bind_dn = cn=admin,dc=example,dc=org
+# this is the password
+ldap_default_authtok = admin
+access_provider = ldap
+ldap_access_filter = (objectClass=posixAccount)
+min_id = 1
+max_id = 0
+ldap_user_uuid = entryUUID
+ldap_user_shell = loginShell
+ldap_user_home_directory = homeDirectory
+ldap_user_uid_number = uidNumber
+ldap_user_gid_number = gidNumber
+ldap_group_gid_number = gidNumber
+ldap_group_uuid = entryUUID
+ldap_group_member = memberUid
+ldap_access_order = filter
+
+# just because we are testing
+ldap_auth_disable_tls_never_use_in_production = true
+ldap_id_use_start_tls = false
+ldap_tls_reqcert = never
+ldap_tls_cacert = /etc/ssl/certs/ca-certificates.crt
+use_fully_qualified_names = false
