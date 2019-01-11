@@ -1,11 +1,10 @@
 library(shiny)
 library(ggplot2)
-library(babynames)
 library(dplyr)
-library(readr)
 library(splines)
+library(babynames)
 
-babynames <- read_csv('../babynames.csv', col_types = "iiccid")
+babynames <- babynames::babynames
 
 ui <- fluidPage(
   sidebarLayout(
@@ -26,14 +25,13 @@ server <- function(input, output, session){
   data <- reactive({
     babynames %>%
       filter(tolower(name) == tolower(input$name)) %>% 
-      select(year, n) %>% 
       group_by(year) %>% 
       summarize(n = sum(n))
   })
   
   output$pop <- renderPlot({
     data() %>% 
-    ggplot(aes(x = year, y = n)) +
+      ggplot(aes(x = year, y = n)) +
       geom_point(alpha = 0.4) +
       stat_smooth(method = glm, method.args = list(family = "quasipoisson"), 
                   formula = y ~ ns(x, 3)) + 
