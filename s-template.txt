@@ -17,30 +17,32 @@ sudo_provider = ldap
 enumerate = true
 cache_credentials = false
 ldap_schema = rfc2307bis
-ldap_uri = 
-ldap_search_base = 
-ldap_user_search_base = 
-ldap_user_object_class = 
-ldap_user_name = 
-
-ldap_group_search_base = 
-ldap_group_object_class = 
-ldap_group_name = 
-ldap_default_bind_dn = 
-# this is the password
-ldap_default_authtok = 
+ldap_uri = ldap://leader.example.org:389
+ldap_search_base = dc=example,dc=org
+ldap_user_search_base = dc=example,dc=org
 access_provider = ldap
 ldap_access_filter = (objectClass=posixAccount)
 min_id = 1
 max_id = 0
+
+ldap_user_object_class = 
+ldap_user_name = 
 ldap_user_uuid = 
 ldap_user_shell = 
 ldap_user_home_directory = 
 ldap_user_uid_number = 
-ldap_user_gid_number = 
-ldap_group_gid_number = 
-ldap_group_uuid = 
-ldap_group_member = 
+
+ldap_default_bind_dn = cn=admin,dc=example,dc=org
+# this is the password
+ldap_default_authtok = admin
+
+ldap_group_search_base = dc=example,dc=org
+ldap_group_object_class = posixGroup
+ldap_group_name = cn
+ldap_user_gid_number = gidNumber
+ldap_group_gid_number = gidNumber
+ldap_group_uuid = entryUUID
+ldap_group_member = memberUid
 ldap_access_order = filter
 
 # just because we are testing
