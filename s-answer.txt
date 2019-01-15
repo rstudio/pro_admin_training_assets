@@ -20,23 +20,25 @@ ldap_schema = rfc2307bis
 ldap_uri = ldap://leader.example.org:389
 ldap_search_base = dc=example,dc=org
 ldap_user_search_base = dc=example,dc=org
-ldap_user_object_class = posixAccount
-ldap_user_name = cn
-
-ldap_group_search_base = dc=example,dc=org
-ldap_group_object_class = posixGroup
-ldap_group_name = cn
-ldap_default_bind_dn = cn=admin,dc=example,dc=org
-# this is the password
-ldap_default_authtok = admin
 access_provider = ldap
 ldap_access_filter = (objectClass=posixAccount)
 min_id = 1
 max_id = 0
+
+ldap_user_object_class = posixAccount
+ldap_user_name = cn
 ldap_user_uuid = entryUUID
 ldap_user_shell = loginShell
 ldap_user_home_directory = homeDirectory
 ldap_user_uid_number = uidNumber
+
+ldap_default_bind_dn = cn=admin,dc=example,dc=org
+# this is the password
+ldap_default_authtok = admin
+
+ldap_group_search_base = dc=example,dc=org
+ldap_group_object_class = posixGroup
+ldap_group_name = cn
 ldap_user_gid_number = gidNumber
 ldap_group_gid_number = gidNumber
 ldap_group_uuid = entryUUID
