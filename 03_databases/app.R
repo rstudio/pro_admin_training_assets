@@ -6,10 +6,8 @@ library(shiny)
 library(highcharter)
 library(DT)
 library(htmltools)
-library(odbc)
 
-# Use a DSN
-con <- DBI::dbConnect(odbc::odbc(),"SQL Server")
+con <- DBI::dbConnect(odbc::odbc(), "SQL Server")
 
 # Use purrr's split() and map() function to create the list
 # needed to display the name of the airline but pass its
@@ -25,64 +23,64 @@ ui <- dashboardPage(
   dashboardHeader(title = "Flights Dashboard",
                   titleWidth = 200),
   dashboardSidebar(
-    selectInput(
-      inputId = "airline",
-      label = "Airline:", 
-      choices = airline_list, 
-      selectize = FALSE),
-    sidebarMenu(
-      selectInput(
-        "month",
-        "Month:", 
-        list(
-          "All Year" = 99,
-          "January" = 1,
-          "February" = 2,
-          "March" = 3,
-          "April" = 4,
-          "May" = 5,
-          "June" = 6,
-          "July" = 7,
-          "August" = 8,
-          "September" = 9,
-          "October" = 10,
-          "November" = 11,
-          "December" = 12
-        ) , 
-        selected =  "All Year", 
+     selectInput(
+        inputId = "airline",
+        label = "Airline:", 
+        choices = airline_list, 
         selectize = FALSE),
-      actionLink("remove", "Remove detail tabs")
+     sidebarMenu(
+       selectInput(
+         "month",
+         "Month:", 
+         list(
+           "All Year" = 99,
+           "January" = 1,
+           "February" = 2,
+           "March" = 3,
+           "April" = 4,
+           "May" = 5,
+           "June" = 6,
+           "July" = 7,
+           "August" = 8,
+           "September" = 9,
+           "October" = 10,
+           "November" = 11,
+           "December" = 12
+         ) , 
+         selected =  "All Year", 
+         selectize = FALSE),
+       actionLink("remove", "Remove detail tabs")
     )
   ),
   dashboardBody(      
     tabsetPanel(id = "tabs",
-                tabPanel(
-                  title = "Main Dashboard",
-                  value = "page1",
-                  fluidRow(
-                    valueBoxOutput("total_flights"),
-                    valueBoxOutput("per_day"),
-                    valueBoxOutput("percent_delayed")
-                  ),
-                  fluidRow(
+                  tabPanel(
+                    title = "Main Dashboard",
+                    value = "page1",
+                    fluidRow(
+                      valueBoxOutput("total_flights"),
+                      valueBoxOutput("per_day"),
+                      valueBoxOutput("percent_delayed")
+                    ),
+                    fluidRow(
                     
-                    
-                  ),
-                  fluidRow(
-                    column(width = 7,
-                           p(textOutput("monthly")),
-                           highchartOutput("group_totals")),
-                    column(width = 5,
-                           p("Click on an airport in the plot to see the details"),
-                           highchartOutput("top_airports"))
+                             
+                    ),
+                    fluidRow(
+                      column(width = 7,
+                             p(textOutput("monthly")),
+                             highchartOutput("group_totals")),
+                      column(width = 5,
+                             p("Click on an airport in the plot to see the details"),
+                             highchartOutput("top_airports"))
+                    )
                   )
-                )
-    )
+      )
   )
 )
-
-
-
+                      
+                  
+                    
 
 server <- function(input, output, session) { 
   
@@ -99,7 +97,7 @@ server <- function(input, output, session) {
     select(-lat, -lon, -alt, -tz, -dst) %>%
     left_join(tbl(con, "airports"), by = c("dest" = "faa")) %>%
     rename(dest_name = name) 
-  
+
   output$monthly <- renderText({
     if(input$month == "99")"Click on a month in the plot to see the daily counts"
   })
@@ -107,9 +105,9 @@ server <- function(input, output, session) {
   output$total_flights <- renderValueBox({
     # The following code runs inside the database
     result <- db_flights %>%
-      filter(carrier == input$airline)
+      filter(carrier == !!input$airline)
     
-    if(input$month != 99) result <- filter(result, month == input$month)
+    if(input$month != 99) result <- filter(result, month == !!input$month)
     
     result <- result %>%
       tally() %>%
@@ -125,9 +123,9 @@ server <- function(input, output, session) {
     
     # The following code runs inside the database
     result <- db_flights %>%
-      filter(carrier == input$airline)
+      filter(carrier == !!input$airline)
     
-    if(input$month != 99) result <- filter(result, month == input$month)
+    if(input$month != 99) result <- filter(result, month == !!input$month)
     result <- result %>%
       group_by(day, month) %>%
       tally() %>%
@@ -145,9 +143,9 @@ server <- function(input, output, session) {
     
     # The following code runs inside the database
     result <- db_flights %>%
-      filter(carrier == input$airline)
+      filter(carrier == !!input$airline)
     
-    if(input$month != 99) result <- filter(result, month == input$month)
+    if(input$month != 99) result <- filter(result, month == !!input$month)
     result <- result %>%
       mutate(delayed = ifelse(dep_delay >= 15, 1, 0)) %>%
       summarise(delays = sum(delayed),
@@ -168,17 +166,17 @@ server <- function(input, output, session) {
   
   output$group_totals <- renderHighchart({
     
-    if(input$month != 99) {
+  if(input$month != 99) {
       result <- db_flights %>%
-        filter(month == input$month,
-               carrier == input$airline) %>%
+        filter(month == !!input$month,
+               carrier == !!input$airline) %>%
         group_by(day) %>%
         tally() %>%
         collect()
       group_name <- "Daily"
     } else {
       result <- db_flights %>%
-        filter(carrier == input$airline) %>%
+        filter(carrier == !!input$airline) %>%
         group_by(month) %>%
         tally() %>%
         collect()    
@@ -199,16 +197,16 @@ server <- function(input, output, session) {
   observeEvent(input$line_clicked != "",
                if(input$month == 99)
                  updateSelectInput(session, "month", selected = input$line_clicked),
-               ignoreInit = TRUE)
+                 ignoreInit = TRUE)
   
   js_bar_clicked <- JS("function(event) {Shiny.onInputChange('bar_clicked', [event.point.category]);}")
   
   output$top_airports <- renderHighchart({
     # The following code runs inside the database
     result <- db_flights %>%
-      filter(carrier == input$airline) 
+      filter(carrier == !!input$airline) 
     
-    if(input$month != 99) result <- filter(result, month == input$month) 
+    if(input$month != 99) result <- filter(result, month == !!input$month) 
     
     result <- result %>%
       group_by(dest_name) %>%
@@ -228,7 +226,7 @@ server <- function(input, output, session) {
         tickmarkPlacement="on")
     
     
-  })
+})
   
   observeEvent(input$bar_clicked,
                {
@@ -240,9 +238,9 @@ server <- function(input, output, session) {
                  if(tab_title %in% tab_list == FALSE){
                    details <- db_flights %>%
                      filter(dest_name == airport,
-                            carrier == input$airline)
+                            carrier == !!input$airline)
                    
-                   if(input$month != 99) details <- filter(details, month == input$month) 
+                   if(input$month != 99) details <- filter(details, month == !!input$month) 
                    
                    details <- details %>%
                      head(100) %>% 
@@ -265,9 +263,9 @@ server <- function(input, output, session) {
                              ))
                    
                    tab_list <<- c(tab_list, tab_title)
-                   
+                                      
                  }
-                 
+
                  updateTabsetPanel(session, "tabs", selected = tab_title)
                  
                })
