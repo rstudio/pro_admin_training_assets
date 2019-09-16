@@ -52,7 +52,7 @@ ui <- dashboardPage(
        actionLink("remove", "Remove detail tabs")
     )
   ),
-  dashboardBody(      
+  dashboardBody(
     tabsetPanel(id = "tabs",
                   tabPanel(
                     title = "Main Dashboard",
@@ -61,10 +61,6 @@ ui <- dashboardPage(
                       valueBoxOutput("total_flights"),
                       valueBoxOutput("per_day"),
                       valueBoxOutput("percent_delayed")
-                    ),
-                    fluidRow(
-                    
-                             
                     ),
                     fluidRow(
                       column(width = 7,
