@@ -7,17 +7,41 @@ library(highcharter)
 library(DT)
 library(htmltools)
 
-con <- DBI::dbConnect(odbc::odbc(), "SQL Server")
+con <- DBI::dbConnect(odbc::odbc(), "Postgres Dev")
+
+dbExecute(con,"SET search_path TO datawarehouse;")
+
 
 # Use purrr's split() and map() function to create the list
 # needed to display the name of the airline but pass its
 # Carrier code as the value
 
-airline_list <- tbl(con, "airlines") %>%
+airline_list <- tbl(con, "carrier") %>%
   collect()  %>%
-  split(.$name) %>%
+  split(.$carriername) %>%
   map(~.$carrier)
 
+db_flights <-
+  tbl(con, "flight") %>%
+  left_join(tbl(con, "carrier"), by = c(uniquecarrier = "carrier")) %>% 
+  rename(carrier = uniquecarrier) %>% 
+  left_join(tbl(con, "airport"), by = c("origin" = "airport")) %>% 
+  rename(origin_name = origin) %>% 
+  select(-lat, -long) %>% 
+  left_join(tbl(con, "airport"), by = c("dest" = "airport")) %>% 
+  rename(
+    dest_name = origin_name,
+    day = dayofmonth) 
+
+# db_flights %>% head(100) %>% collect %>% View()
+
+# db_flights
+# db_flights %>% select(carrier)
+# 
+# input <- list(
+#   airline = "Southwest Airlines Co.",
+#   month = 9
+# )
 
 ui <- dashboardPage(
   dashboardHeader(title = "Flights Dashboard",
@@ -31,8 +55,8 @@ ui <- dashboardPage(
      sidebarMenu(
        selectInput(
          "month",
-         "Month:", 
-         list(
+         label = "Month:", 
+         choices = list(
            "All Year" = 99,
            "January" = 1,
            "February" = 2,
@@ -75,24 +99,56 @@ ui <- dashboardPage(
   )
 )
                       
-                  
-                    
+
+total_flights <- function(db_flights, airline, month){
+  result <- db_flights %>%
+    filter(carrier == !!airline)
+  
+  if(month != 99) result <- filter(result, month == !!month)
+  
+  result %>%
+    tally() %>%
+    pull() %>% 
+    as.integer()
+}                  
+
+flights_per_day <- function(db_flights, airline, month){
+  result <- db_flights %>%
+    filter(carriername == !!airline)
+  
+  if(month != 99) result <- filter(result, month == !!month)
+  
+  result %>%
+    group_by(day) %>%
+    tally() %>%
+    summarise(avg = mean(n)) %>%
+    pull(avg) %>% 
+    mean()
+}
+
+
+fraction_delayed <- function(db_flights, airline, month){
+  result <- db_flights %>%
+    filter(carrier == !!airline)
+  
+  if(month != 99) result <- filter(result, month == !!month)
+  
+  result %>%
+    mutate(delayed = if_else(depdelay >= 15, 1, 0)) %>%
+    summarise(delays = sum(delayed),
+              total = n()) %>%
+    mutate(percent = delays / total) %>%
+    pull()
+}
+
+
 
 server <- function(input, output, session) { 
   
   tab_list <- NULL
-  
-  
+
   # Preparing the data by pre-joining flights to other
   # tables and doing some name clean-up
-  db_flights <- tbl(con, "flights") %>%
-    left_join(tbl(con, "airlines"), by = "carrier") %>%
-    rename(airline = name) %>%
-    left_join(tbl(con, "airports"), by = c("origin" = "faa")) %>%
-    rename(origin_name = name) %>%
-    select(-lat, -lon, -alt, -tz, -dst) %>%
-    left_join(tbl(con, "airports"), by = c("dest" = "faa")) %>%
-    rename(dest_name = name) 
 
   output$monthly <- renderText({
     if(input$month == "99")"Click on a month in the plot to see the daily counts"
@@ -100,16 +156,7 @@ server <- function(input, output, session) {
   
   output$total_flights <- renderValueBox({
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == !!input$airline)
-    
-    if(input$month != 99) result <- filter(result, month == !!input$month)
-    
-    result <- result %>%
-      tally() %>%
-      pull() %>% 
-      as.integer()
-    
+    result <- total_flights(db_flights, input$airline, input$month)
     valueBox(value = prettyNum(result, big.mark = ","),
              subtitle = "Number of Flights")
   })
@@ -118,17 +165,9 @@ server <- function(input, output, session) {
   output$per_day <- renderValueBox({
     
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == !!input$airline)
+    result <- flights_per_day(db_flights, input$airline, input$month)
     
-    if(input$month != 99) result <- filter(result, month == !!input$month)
-    result <- result %>%
-      group_by(day, month) %>%
-      tally() %>%
-      summarise(avg = mean(n)) %>%
-      pull()
-    
-    valueBox(prettyNum(result, big.mark = ","),
+    valueBox(prettyNum(z, big.mark = ","),
              subtitle = "Average Flights",
              color = "blue")
   })
@@ -138,16 +177,7 @@ server <- function(input, output, session) {
   output$percent_delayed <- renderValueBox({
     
     # The following code runs inside the database
-    result <- db_flights %>%
-      filter(carrier == !!input$airline)
-    
-    if(input$month != 99) result <- filter(result, month == !!input$month)
-    result <- result %>%
-      mutate(delayed = ifelse(dep_delay >= 15, 1, 0)) %>%
-      summarise(delays = sum(delayed),
-                total = n()) %>%
-      mutate(percent = delays / total) %>%
-      pull()
+    result <- fraction_delayed(db_flights, input$airline, input$month)
     
     valueBox(paste0(round(result * 100), "%"),
              subtitle = "Flights delayed",
@@ -227,13 +257,14 @@ server <- function(input, output, session) {
   observeEvent(input$bar_clicked,
                {
                  airport <- input$bar_clicked[1]
+                 message(airport)
                  tab_title <- paste(input$airline, 
                                     "-", airport , 
                                     if(input$month != 99) paste("-" , month.name[as.integer(input$month)]))
                  
                  if(tab_title %in% tab_list == FALSE){
                    details <- db_flights %>%
-                     filter(dest_name == airport,
+                     filter(dest_name == !!airport,
                             carrier == !!input$airline)
                    
                    if(input$month != 99) details <- filter(details, month == !!input$month) 
@@ -242,10 +273,10 @@ server <- function(input, output, session) {
                      head(100) %>% 
                      select(month,
                             day,
-                            flight,
+                            flightid,
                             tailnum,
-                            dep_time,
-                            arr_time,
+                            deptime,
+                            arrtime,
                             dest_name,
                             distance) %>%
                      collect() %>%
