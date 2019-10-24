@@ -21,27 +21,7 @@ airline_list <- tbl(con, "carrier") %>%
   split(.$carriername) %>%
   map(~.$carrier)
 
-db_flights <-
-  tbl(con, "flight") %>%
-  left_join(tbl(con, "carrier"), by = c(uniquecarrier = "carrier")) %>% 
-  rename(carrier = uniquecarrier) %>% 
-  left_join(tbl(con, "airport"), by = c("origin" = "airport")) %>% 
-  rename(origin_name = origin) %>% 
-  select(-lat, -long) %>% 
-  left_join(tbl(con, "airport"), by = c("dest" = "airport")) %>% 
-  rename(
-    dest_name = origin_name,
-    day = dayofmonth) 
 
-# db_flights %>% head(100) %>% collect %>% View()
-
-# db_flights
-# db_flights %>% select(carrier)
-# 
-# input <- list(
-#   airline = "Southwest Airlines Co.",
-#   month = 9
-# )
 
 ui <- dashboardPage(
   dashboardHeader(title = "Flights Dashboard",
@@ -98,6 +78,20 @@ ui <- dashboardPage(
       )
   )
 )
+
+
+db_flights <-
+  tbl(con, "flight") %>%
+  left_join(tbl(con, "carrier"), by = c(uniquecarrier = "carrier")) %>% 
+  rename(carrier = uniquecarrier) %>% 
+  left_join(tbl(con, "airport"), by = c("origin" = "airport")) %>% 
+  rename(origin_name = origin) %>% 
+  select(-lat, -long) %>% 
+  left_join(tbl(con, "airport"), by = c("dest" = "airport")) %>% 
+  rename(
+    dest_name = origin_name,
+    day = dayofmonth) 
+
                       
 
 total_flights <- function(db_flights, airline, month){
