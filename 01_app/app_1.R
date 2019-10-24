@@ -9,11 +9,11 @@ babynames <- babynames::babynames
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
-      p('Enter your favorite name:'),
-      textInput('name', '')
+      p("Enter your favorite name:"),
+      textInput("name", "")
     ),
     mainPanel(
-      plotOutput('pop')
+      plotOutput("pop")
     )
   )
 )
@@ -37,8 +37,8 @@ server <- function(input, output, session){
                   formula = y ~ ns(x, 3)) + 
       labs(
         title = paste0("Popularity of ", input$name), 
-        y = paste0('# of People Named ', input$name),
-        x = 'Year'
+        y = paste0("# of People Named ", input$name),
+        x = "Year"
       ) +
       theme_minimal()
   })

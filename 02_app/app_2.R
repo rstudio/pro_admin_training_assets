@@ -5,16 +5,16 @@ library(splines)
 library(rstudiointernal)
 
 
-babynames <- read_csv('../babynames.csv', col_types = "iiccid")
+babynames <- read_csv("../babynames.csv", col_types = "iiccid")
 
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
-      p('Enter your favorite name:'),
-      textInput('name', '')
+      p("Enter your favorite name:"),
+      textInput("name", "")
     ),
     mainPanel(
-      plotOutput('pop')
+      plotOutput("pop")
     )
   )
 )
@@ -22,14 +22,14 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session){
-  
+
   data <- reactive({
     babynames %>%
       filter(tolower(name) == tolower(input$name)) %>% 
       group_by(year) %>% 
       summarize(n = sum(n))
   })
-  
+
   output$pop <- renderPlot({
     data() %>% 
       ggplot(aes(x = year, y = n)) +
@@ -38,12 +38,11 @@ server <- function(input, output, session){
                   formula = y ~ ns(x, 3)) + 
       labs(
         title = paste0("Popularity of ", input$name), 
-        y = paste0('# of People Named ', input$name),
-        x = 'Year'
+        y = paste0("# of People Named ", input$name),
+        x = "Year"
       ) +
       theme_rstudio()
   })
-} 
+}
 
 shinyApp(ui, server)
-
