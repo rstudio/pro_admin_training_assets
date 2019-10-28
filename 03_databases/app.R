@@ -110,7 +110,7 @@ total_flights <- function(db_flights, airline, month){
 
 flights_per_day <- function(db_flights, airline, month){
   result <- db_flights %>%
-    filter(carriername == !!airline)
+    filter(carrier == !!airline)
   
   if(month != 99) result <- filter(result, month == !!month)
   
@@ -119,7 +119,7 @@ flights_per_day <- function(db_flights, airline, month){
     tally() %>%
     summarise(avg = mean(n)) %>%
     pull(avg) %>% 
-    mean()
+    round(0)
 }
 
 
@@ -166,8 +166,8 @@ server <- function(input, output, session) {
     # The following code runs inside the database
     result <- flights_per_day(db_flights, input$airline, input$month)
     
-    valueBox(prettyNum(z, big.mark = ","),
-             subtitle = "Average Flights",
+    valueBox(prettyNum(result, big.mark = ","),
+             subtitle = "Average flights per day",
              color = "blue")
   })
   
