@@ -9,7 +9,7 @@ library(htmltools)
 
 con <- DBI::dbConnect(odbc::odbc(), "Postgres Dev")
 
-dbExecute(con,"SET search_path TO datawarehouse;")
+DBI::dbExecute(con,"SET search_path TO datawarehouse;")
 
 
 # Use purrr's split() and map() function to create the list
@@ -80,6 +80,8 @@ ui <- dashboardPage(
 )
 
 
+# helper functions --------------------------------------------------------
+
 db_flights <-
   tbl(con, "flight") %>%
   left_join(tbl(con, "carrier"), by = c(uniquecarrier = "carrier")) %>% 
@@ -134,6 +136,9 @@ fraction_delayed <- function(db_flights, airline, month){
     mutate(percent = delays / total) %>%
     pull()
 }
+
+
+# shiny server code -------------------------------------------------------
 
 
 
