@@ -1,5 +1,5 @@
-/* Creates or overwrites a .bashrc in the current execution dir
- * .bashrc exports an invalid R_HOME directory, named "invalid"
+/* Creates or overwrites the /etc/profile file with 
+ * an invalid LD_LIBRARY_PATH directory, named "invalid"
  * Used for R Conference Workshop troubleshooting exercise.
  */
 
@@ -7,8 +7,8 @@
 
 int main() {
   FILE * fp;
-  fp = fopen(".bashrc", "w+");
-  fputs("export R_HOME=invalid/\n", fp);
+  fp = fopen("/etc/profile", "a+");
+  fputs("export LD_LIBRARY_PATH=invalid/\n", fp);
   fclose(fp);
   return (0);
 }
