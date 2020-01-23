@@ -3,7 +3,7 @@ library(ggplot2)
 library(readr)
 library(splines)
 library(rstudiointernal)
-
+library(dplyr)
 
 babynames <- read_csv("../babynames.csv", col_types = "iiccid")
 
