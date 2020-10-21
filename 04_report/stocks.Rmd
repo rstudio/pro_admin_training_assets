@@ -59,8 +59,8 @@ highchart() %>%
     list(title = list(text = NULL), height = "75%", top = "0%"),
     list(title = list(text = NULL), height = "15%", top = "80.5%", opposite = TRUE)
   ) %>%
-  hc_add_series_ohlc(prices, yAxis=0, name= params$symbol) %>% 
-  hc_add_series_xts(prices[,paste0(params$symbol,".Volume")], name="Volume", type="column", yAxis=1) %>% 
+  hc_add_series(type = "ohlc", prices, yAxis=0, name= params$symbol) %>% 
+  hc_add_series(type = "xts", prices[,paste0(params$symbol,".Volume")], name="Volume", type="column", yAxis=1) %>% 
   hc_add_theme(hc_theme_economist())
 ```
 
