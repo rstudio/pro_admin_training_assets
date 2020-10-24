@@ -1,4 +1,5 @@
 ---
+title: "Report for `r params$symbol` on `r Sys.Date()`"
 output:
   html_document:
     code_folding: hide
@@ -23,18 +24,18 @@ params:
     input: date
 ---
   
-# Report for `r params$symbol` on `r Sys.Date()`
-
 ## Summary{.tabset}
 
-```{r, echo=TRUE, message=FALSE}
-library(stringr)
-library(lubridate)
-library(quantmod)
-library(DT)
-library(dygraphs)
-library(forecast)
-library(highcharter)
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(stringr)
+  library(lubridate)
+  library(quantmod)
+  library(DT)
+  library(dygraphs)
+  library(forecast)
+  library(highcharter)
+})
 
 prices <- round(getSymbols(params$symbol, auto.assign = FALSE, src = "yahoo"), 2)
 close <- Cl(last(prices))
@@ -59,8 +60,9 @@ highchart() %>%
     list(title = list(text = NULL), height = "75%", top = "0%"),
     list(title = list(text = NULL), height = "15%", top = "80.5%", opposite = TRUE)
   ) %>%
-  hc_add_series_ohlc(prices, yAxis=0, name= params$symbol) %>% 
-  hc_add_series_xts(prices[,paste0(params$symbol,".Volume")], name="Volume", type="column", yAxis=1) %>% 
+  hc_add_series(type = "ohlc", prices, yAxis=0, name= params$symbol) %>% 
+  hc_add_series(type = "xts", prices[,paste0(params$symbol,".Volume")], 
+                name="Volume", type="column", yAxis=1) %>% 
   hc_add_theme(hc_theme_economist())
 ```
 
@@ -71,7 +73,7 @@ The table below displays the daily price data for `r params$symbol` for the last
   
 ```{r echo=TRUE}
 df <- as.data.frame(recent)
-df[,paste0(params$symbol, ".Volume")] <- df[,paste0(params$symbol, ".Volume")]/1000000 
+df[, paste0(params$symbol, ".Volume")] <- df[, paste0(params$symbol, ".Volume")] / 1000000 
 datatable(df) %>% 
   formatCurrency(c(paste0(params$symbol, ".Open"), paste0(params$symbol, ".High"), paste0(params$symbol, ".Low"), paste0(params$symbol,".Close")), digits=2) %>% 
   formatRound(c(paste0(params$symbol, ".Volume")), digits=0)
